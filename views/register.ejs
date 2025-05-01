@@ -1,0 +1,60 @@
+<%- layout('boilerplate') %>
+
+<main class="institute-registration">
+    <h2 class="iform-heading">Register Your Institute</h2>
+    <form action="/register" method="POST" class="registration-form">
+        <div class="form-group">
+            <label for="name" class="form-label">Institute Name:</label>
+            <input type="text" id="name" name="name" class="form-input" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email" class="form-label">Email Address:</label>
+            <input type="email" id="email" name="email" class="form-input" required>
+        </div>
+
+        <div>
+            <label for="phone" class="form-label">Contact Number:</label>
+            <input type="tel" id="phone" name="phone" class="form-input" required>
+        </div>
+
+        <div>
+            <label for="address" class="form-label">Address:</label>
+            <textarea id="address" name="address" class="form-input" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="type" class="form-label">Institute Type:</label>
+            <select id="type" name="type" class="form-select" required>
+                <option value="">Select Type</option>
+                <option value="school">School</option>
+                <option value="college">College</option>
+                <option value="university">University</option>
+                <option value="training_center">Training Center</option>
+                <option value="corporate_office">Corporate Office</option>
+                <option value="medical_care">Medical Care</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="role" class="form-label">Role:</label>
+            <select id="role" name="role" class="form-select" >
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+                <option value="superadmin">Superadmin</option>
+            </select>
+        </div>
+        
+
+        <div class="form-group">
+            <label for="password" class="form-label">Create Password:</label>
+            <input type="password" id="password" name="password" class="form-input" required>
+        </div>
+
+        <div class="form-group">
+            <label for="confirm-password">Confirm Password:</label>
+            <input type="password" id="confirm-password" name="confirmPassword" class="form-input" required>
+        </div>
+
+        <button type="submit" class="form-button">Register</button>
+    </form>
+</main>

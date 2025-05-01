@@ -1,0 +1,48 @@
+<%- layout("boilerplate") %>
+
+<main class="container">
+    <h2>Pending Students</h2>
+    <!-- Register Button -->
+    <div class="register-student-container">
+        <a href="/studentform" class="btn-register">Register Participant</a>
+    </div>
+    
+    <table class="student-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Contact</th>
+                <th>Device ID</th>
+                <th>Guardian Name</th>
+                <th>Guardian Contact</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (students.length === 0) { %>
+                <tr><td colspan="7">No pending students found.</td></tr>
+            <% } %>
+            <% students.forEach(student => { %>
+                <tr>
+                    <td><%= student.name %></td>
+                    <td><%= student.email %></td>
+                    <td><%= student.phone %></td>
+                    <td><%= student.deviceId %></td>
+                    <td><%= student.parentName %></td>
+                    <td><%= student.parentContact %></td>
+                    <td>
+                        <div class="action-buttons">
+                            <form action="/admin/approve-student/<%= student._id %>" method="POST">
+                                <button type="submit" class="btn-approve">Approve</button>
+                            </form>
+                            <form action="/admin/reject-student/<%= student._id %>" method="POST">
+                                <button type="submit" class="btn-reject">Reject</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            <% }); %>
+        </tbody>
+    </table>
+</main>

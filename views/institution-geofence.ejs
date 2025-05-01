@@ -1,0 +1,306 @@
+<!-- <%- layout("boilerplate") %>
+  <title>GeoFence Drawing</title>
+  <link rel="stylesheet" href="style.css"> Your external stylesheet
+</head>
+<body>
+  <div class="geoFenceMapContainer">
+    <header>
+      <h2>📍 Draw GeoFence for Campus</h2>
+    </header>
+
+    <div class="geoFenceControls">
+      <input id="geoFenceSearchInput" type="text" placeholder="Search for a location">
+      <button id="geoFenceSaveBtn">Save GeoFence</button>
+      <button id="geoFenceDeleteBtn">Delete Fence</button>
+    </div>
+
+    <div id="geoFenceMap"></div>
+  </div>
+
+  <script>
+    let geoFenceMap;
+    let drawnGeoFencePolygon;
+
+    function initMap() {
+      geoFenceMap = new google.maps.Map(document.getElementById('geoFenceMap'), {
+        center: { lat: 18.950254, lng: 72.832877 },
+        zoom: 17,
+        zoomControl: true,
+        zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_CENTER },
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false
+      });
+
+      const input = document.getElementById("geoFenceSearchInput");
+      const autocomplete = new google.maps.places.Autocomplete(input);
+      autocomplete.bindTo("bounds", geoFenceMap);
+
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        if (!place.geometry || !place.geometry.location) {
+          alert("No details available for input: '" + place.name + "'");
+          return;
+        }
+        place.geometry.viewport ? geoFenceMap.fitBounds(place.geometry.viewport) : geoFenceMap.setCenter(place.geometry.location);
+        geoFenceMap.setZoom(18);
+
+        new google.maps.Marker({
+          map: geoFenceMap,
+          position: place.geometry.location,
+          title: place.formatted_address
+        });
+      });
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+          const userLoc = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+          geoFenceMap.setCenter(userLoc);
+          new google.maps.Marker({ position: userLoc, map: geoFenceMap, title: "You are here" });
+        });
+      } else {
+        alert("Geolocation not supported.");
+      }
+
+      fetch('/api/get-geofence')
+        .then(res => res.json())
+        .then(data => {
+          if (data.coordinates?.length) {
+            const savedPolygon = new google.maps.Polygon({
+              paths: data.coordinates,
+              strokeColor: "#0000FF",
+              strokeOpacity: 0.8,
+              strokeWeight: 2,
+              fillColor: "#0000FF",
+              fillOpacity: 0.35,
+              editable: false,
+              map: geoFenceMap
+            });
+
+            const bounds = new google.maps.LatLngBounds();
+            data.coordinates.forEach(coord => bounds.extend(coord));
+            geoFenceMap.fitBounds(bounds);
+          }
+        })
+        .catch(err => console.error("Error loading fence", err));
+
+      const drawingManager = new google.maps.drawing.DrawingManager({
+        drawingMode: google.maps.drawing.OverlayType.POLYGON,
+        drawingControl: true,
+        drawingControlOptions: {
+          position: google.maps.ControlPosition.TOP_CENTER,
+          drawingModes: ['polygon']
+        },
+        polygonOptions: {
+          fillColor: '#FF0000',
+          fillOpacity: 0.35,
+          strokeWeight: 2,
+          clickable: false,
+          editable: true,
+          zIndex: 1
+        }
+      });
+      drawingManager.setMap(geoFenceMap);
+
+      google.maps.event.addListener(drawingManager, 'overlaycomplete', function (event) {
+        if (event.type === 'polygon') {
+          if (drawnGeoFencePolygon) drawnGeoFencePolygon.setMap(null);
+          drawnGeoFencePolygon = event.overlay;
+        }
+      });
+
+      document.getElementById('geoFenceSaveBtn').addEventListener('click', () => {
+        if (!drawnGeoFencePolygon) return alert("Please draw a polygon first.");
+        const path = drawnGeoFencePolygon.getPath();
+        const coordinates = [];
+        for (let i = 0; i < path.getLength(); i++) {
+          coordinates.push({ lat: path.getAt(i).lat(), lng: path.getAt(i).lng() });
+        }
+
+        fetch('/api/save-geofence', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fenceCoordinates: coordinates })
+        })
+        .then(res => res.json())
+        .then(data => alert('GeoFence saved successfully!'))
+        .catch(err => {
+          console.error(err);
+          alert('Error saving GeoFence');
+        });
+      });
+
+      document.getElementById('geoFenceDeleteBtn').addEventListener('click', () => {
+        if (drawnGeoFencePolygon) {
+          drawnGeoFencePolygon.setMap(null);
+          drawnGeoFencePolygon = null;
+        }
+      });
+    }
+  </script>
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCarVWYg5q9uNRWJP7h0ZQa8DcyHZoPGVk&libraries=places,drawing&callback=initMap" async defer></script>
+</body>
+</html> -->
+<%- layout("boilerplate") %>
+  <title>GeoFence Drawing</title>
+  <link rel="stylesheet" href="style.css"> <!-- Your external stylesheet -->
+</head>
+<body>
+  <div class="geoFenceMapContainer">
+    <header>
+      <h2>📍 Draw GeoFence for Campus</h2>
+    </header>
+
+    <div class="geoFenceControls">
+      <input id="geoFenceSearchInput" type="text" placeholder="Search for a location">
+      <button id="geoFenceSaveBtn">Save GeoFence</button>
+      <button id="geoFenceDeleteBtn">Delete Fence</button>
+    </div>
+
+    <div id="geoFenceMap"></div>
+  </div>
+
+  <script>
+    let geoFenceMap;
+    let drawnGeoFencePolygon;
+
+    // Initialize the map
+    function initMap() {
+      geoFenceMap = new google.maps.Map(document.getElementById('geoFenceMap'), {
+        center: { lat: 18.950254, lng: 72.832877 },
+        zoom: 17,
+        zoomControl: true,
+        zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_CENTER },
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false
+      });
+
+      // Add autocomplete for searching locations
+      const input = document.getElementById("geoFenceSearchInput");
+      const autocomplete = new google.maps.places.Autocomplete(input);
+      autocomplete.bindTo("bounds", geoFenceMap);
+
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        if (!place.geometry || !place.geometry.location) {
+          alert("No details available for input: '" + place.name + "'");
+          return;
+        }
+        place.geometry.viewport ? geoFenceMap.fitBounds(place.geometry.viewport) : geoFenceMap.setCenter(place.geometry.location);
+        geoFenceMap.setZoom(18);
+
+        new google.maps.Marker({
+          map: geoFenceMap,
+          position: place.geometry.location,
+          title: place.formatted_address
+        });
+      });
+
+      // Get user current location
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+          const userLoc = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+          geoFenceMap.setCenter(userLoc);
+          new google.maps.Marker({ position: userLoc, map: geoFenceMap, title: "You are here" });
+        });
+      } else {
+        alert("Geolocation not supported.");
+      }
+
+      // Fetch and display the previously saved GeoFence from MongoDB
+      fetch('/get-geofence')
+        .then(res => res.json())
+        .then(data => {
+          if (data.coordinates?.length) {
+            const savedPolygon = new google.maps.Polygon({
+              paths: data.coordinates,
+              strokeColor: "#0000FF",
+              strokeOpacity: 0.8,
+              strokeWeight: 2,
+              fillColor: "#0000FF",
+              fillOpacity: 0.35,
+              editable: false,
+              map: geoFenceMap
+            });
+
+            const bounds = new google.maps.LatLngBounds();
+            data.coordinates.forEach(coord => bounds.extend(coord));
+            geoFenceMap.fitBounds(bounds);
+          }
+        })
+        .catch(err => console.error("Error loading fence", err));
+
+      // Enable drawing of polygons (GeoFences)
+      const drawingManager = new google.maps.drawing.DrawingManager({
+        drawingMode: google.maps.drawing.OverlayType.POLYGON,
+        drawingControl: true,
+        drawingControlOptions: {
+          position: google.maps.ControlPosition.TOP_CENTER,
+          drawingModes: ['polygon']
+        },
+        polygonOptions: {
+          fillColor: '#FF0000',
+          fillOpacity: 0.35,
+          strokeWeight: 2,
+          clickable: false,
+          editable: true,
+          zIndex: 1
+        }
+      });
+      drawingManager.setMap(geoFenceMap);
+
+      google.maps.event.addListener(drawingManager, 'overlaycomplete', function (event) {
+        if (event.type === 'polygon') {
+          if (drawnGeoFencePolygon) drawnGeoFencePolygon.setMap(null);
+          drawnGeoFencePolygon = event.overlay;
+        }
+      });
+
+      // Save the drawn GeoFence to the backend (MongoDB)
+      document.getElementById('geoFenceSaveBtn').addEventListener('click', () => {
+        if (!drawnGeoFencePolygon) return alert("Please draw a polygon first.");
+
+        const path = drawnGeoFencePolygon.getPath();
+        const coordinates = [];
+        const name=document.getElementById('geoFenceSearchInput').value;
+     
+        for (let i = 0; i < path.getLength(); i++) {
+          coordinates.push({ lat: path.getAt(i).lat(), lng: path.getAt(i).lng() });
+        }
+         
+        console.log('Coordinates to save:', coordinates); // Log the coordinates being saved
+        
+        fetch('/save-geofence',{
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({  name: name,  // You can provide a name for the GeoFence
+                                  fenceCoordinates: coordinates, // Pass the array of coordinates
+                                  //  createdBy: 'admin' // The ID of the user creating the fence (from your user session or front-end data)})
+        })
+      })
+        .then(res => res.json())
+        .then(data => {
+          alert('GeoFence saved successfully!');
+          console.log(data);  // Log the response data
+        })
+        .catch(err => {
+          console.error(err);
+          alert('Error saving GeoFence');
+        });
+      });
+
+      // Delete the drawn GeoFence from the map
+      document.getElementById('geoFenceDeleteBtn').addEventListener('click', () => {
+        if (drawnGeoFencePolygon) {
+          drawnGeoFencePolygon.setMap(null);
+          drawnGeoFencePolygon = null;
+        }
+      });
+    }
+  </script>
+
+  <!-- Load the Google Maps API with Places and Drawing libraries -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCarVWYg5q9uNRWJP7h0ZQa8DcyHZoPGVk&libraries=places,drawing&callback=initMap" async defer></script>
+</body>

@@ -1,0 +1,20 @@
+<%- layout("boilerplate") %>
+<div class="ibody">
+<main class="ilogin-container">
+    <h2 class="ilogin-title">Login</h2>
+    <% if (error_msg) { %>
+        <p><%= error_msg %></p>
+    <% } %>
+
+    <form action="/institution-login" method="POST" class="ilogin-form">
+        <label for="email" class="iform-label">Email Address:</label>
+        <input type="email" id="email" name="email" required class="iform-input">
+
+        <label for="password" class="iform-label">Password:</label>
+        <input type="password" id="password" name="password" required class="iform-input">
+
+        <button type="submit" class="ilogin-button">Login</button>
+    </form>
+
+    <p class="iregister-link">Don't have an account? <a href="/register">Register here</a></p>
+</main></div>

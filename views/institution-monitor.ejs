@@ -1,0 +1,69 @@
+<%- layout("boilerplate") %>
+
+<head>
+    <link rel="stylesheet" href="/css/monitor.css">
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCarVWYg5q9uNRWJP7h0ZQa8DcyHZoPGVk"></script>
+</head>
+
+<main class="monitor-container">
+    <h2>Real-Time Student Monitoring</h2>
+
+    <!-- Search Form -->
+    <form class="search-form" method="GET" action="/admin/monitor">
+        <input type="text" name="name" placeholder="Enter student name..." value="<%= query || '' %>" required>
+        <button type="submit">Search</button>
+    </form>
+
+    <% if (student) { %>
+        <div class="student-info">
+            <h3>Student: <%= student.name %></h3>
+            <p><strong>Device ID:</strong> <%= student.deviceId %></p>
+            <p><strong>Current Location:</strong> <%= student.currentLocation.lat %>, <%= student.currentLocation.lng %></p>
+        </div>
+
+        <!-- Google Map -->
+        <div id="map" style="height: 400px; width: 100%; margin: 20px 0;"></div>
+
+        <!-- Entry/Exit History -->
+        <div class="history">
+            <h4>Entry/Exit History</h4>
+            <ul>
+                <% history.forEach(record => { %>
+                    <li><%= record.timestamp %>: <%= record.status %></li>
+                <% }) %>
+            </ul>
+        </div>
+
+        <script>
+            window.addEventListener("DOMContentLoaded", () => {
+                // Debugging: Check if lat/lng are correct
+                const lat = parseFloat("<%= student.currentLocation.lat %>");
+                const lng = parseFloat("<%= student.currentLocation.lng %>");
+                console.log("Latitude:", lat, "Longitude:", lng);
+
+                if (!lat || !lng) {
+                    console.log("Invalid latitude or longitude. Map cannot load.");
+                    return; // Prevent map from loading if invalid data
+                }
+
+                const studentLocation = {
+                    lat: lat,
+                    lng: lng
+                };
+
+                const map = new google.maps.Map(document.getElementById('map'), {
+                    zoom: 18,
+                    center: studentLocation,
+                });
+
+                new google.maps.Marker({
+                    position: studentLocation,
+                    map: map,
+                    title: "<%= student.name %>"
+                });
+            });
+        </script>
+    <% } else if (query) { %>
+        <p>No student found with the name "<%= query %>"</p>
+    <% } %>
+</main>
