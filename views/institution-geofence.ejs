@@ -83,30 +83,6 @@
           }
         })
         .catch(err => console.error("Error loading fence", err));
-
-      const drawingManager = new google.maps.drawing.DrawingManager({
-        drawingMode: google.maps.drawing.OverlayType.POLYGON,
-        drawingControl: true,
-        drawingControlOptions: {
-          position: google.maps.ControlPosition.TOP_CENTER,
-          drawingModes: ['polygon']
-        },
-        polygonOptions: {
-          fillColor: '#FF0000',
-          fillOpacity: 0.35,
-          strokeWeight: 2,
-          clickable: false,
-          editable: true,
-          zIndex: 1
-        }
-      });
-      drawingManager.setMap(geoFenceMap);
-
-      google.maps.event.addListener(drawingManager, 'overlaycomplete', function (event) {
-        if (event.type === 'polygon') {
-          if (drawnGeoFencePolygon) drawnGeoFencePolygon.setMap(null);
-          drawnGeoFencePolygon = event.overlay;
-        }
       });
 
       document.getElementById('geoFenceSaveBtn').addEventListener('click', () => {
@@ -139,7 +115,7 @@
     }
   </script>
 
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCarVWYg5q9uNRWJP7h0ZQa8DcyHZoPGVk&libraries=places,drawing&callback=initMap" async defer></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key="Your API_Key"" async defer></script>
 </body>
 </html> -->
 <%- layout("boilerplate") %>
